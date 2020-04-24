@@ -1,0 +1,78 @@
+<html>
+<head>
+    <style>
+        html, body {
+            height: 100%;
+            margin: 0;
+            padding: 0;
+        }
+        #map {
+            height: 500px;
+            width: 100%;
+        }
+        #panel {
+            position: absolute;
+            top: 0px;
+            left: 25%;
+            z-index: 5;
+            background-color: #fff;
+            padding: 0px;
+            border: 1px solid #999;
+            text-align: center;
+            font-family: 'Roboto','sans-serif';
+            line-height: 0px;
+            padding-left: 10px;
+        }
+    </style>
+    <script async defer src="https://maps.googleapis.com/maps/api/js?key=AIzaSyBShh0JbNOYZKRt5OnKo9UTXjP2kq2UKK4&callback=initMap" type="text/javascript"></script>
+</head>
+<body>
+    <div id="panel">
+        <b>Xuất phát: </b>
+        <select id="source">    // Danh sách các điểm xuất phát (điểm A)
+            <option value="Vân Đình - Ứng Hòa, vi">Thị trấn Vân Đình</option>  // Value của các option là từ khóa để Google tìm kiếm địa điểm.
+            <option value="Hà Đông, vi">Hà Đông</option>
+            <option value="Long Biên, vi">Long Biên</option>
+            <option value="Keangnam Landmark 72, vi">Keangnam Landmark 72</option>
+        </select>
+        <b>Đích: </b>    // Danh sách các điểm đích cần đến (điểm B)
+        <select id="destination">
+            <option value="Khâm Thiên, vi">Khâm Thiên</option>
+            <option value="Ngã Tư Sở, vi">Ngã Tư Sở</option>
+            <option value="Hàng Ngang, vi">Hàng Ngang</option>
+            <option value="Hàng Đào, vi">Hàng Đào</option>
+        </select>
+        <b>Phương tiện: </b>
+        <select id="mode"> // Google Map chỉ hỗ trợ tìm kiếm đường với 4 phương tiện như này thôi nhé.
+            <option value="DRIVING">Lái xe</option>
+            <option value="WALKING">Đi bộ</option>
+            <option value="BICYCLING">Xe đạp</option>
+            <option value="TRANSIT">Xe tải</option>
+        </select>
+    </div>
+    <div id="instructions"></div>    // Kết quả chỉ đường sẽ ở đây
+    <div id="map"></div>    // Bản đồ sẽ hiển thị ở đây
+    <script>
+        var map; // Khởi tạo các biến global mã mình sẽ sử dụng.
+        var directionsDisplay;
+        var directionsService;
+
+        function initMap() {
+            var lat_lng = {lat: 20.9769427, lng: 105.8921285};  // Latitude (Kinh độ) và Longtitude (Vĩ độ) - cho biết bản đồ của bạn sẽ ở khu vực nào, khu vực mình demo là quanh Hà Nội.
+            map = new google.maps.Map(document.getElementById('map'), {    // Khởi tạo map với trong id html là map (lát nữa sẽ tạo <div id="map">)
+                zoom: 16,    // tỉ lệ phóng bản đồ
+                center: lat_lng
+            });
+            directionsService = new google.maps.DirectionsService();    // Khởi tạo DirectionsService - thằng này có nhiệm vụ tính toán chỉ đường cho chúng ta.
+            directionsDisplay = new google.maps.DirectionsRenderer({map: map});    // Khởi tạo DirectionsRenderer - thằng này có nhiệm vụ hiển thị chỉ đường trên bản đồ sau khi đã tính toán.
+
+            var onChangeHandler = function() {
+                calculateAndDisplayRoute(directionsService, directionsDisplay);    // Hàm xử lý và hiển thị kết quả chỉ đường
+            };
+            document.getElementById('Source').addEventListener('change', onChangeHandler);    // Tạo sự kiện khi chọn điểm xuất phát
+            document.getElementById('Destination').addEventListener('change', onChangeHandler);    // Tạo sự kiện khi chọn điểm đích
+            document.getElementById('mode').addEventListener('change', onChangeHandler);
+        }
+    </script>
+</body>
+</html>
