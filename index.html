@@ -1,90 +1,147 @@
+<!DOCTYPE html>
 <html>
 <head>
+    <meta name="viewport" content="initial-scale=1.0, user-scalable=no">
+    <meta charset="utf-8">
+    <title>Waypoints in Directions</title>
     <style>
+        #right-panel {
+            font-family: 'Roboto','sans-serif';
+            line-height: 30px;
+            padding-left: 10px;
+        }
+
+        #right-panel select, #right-panel input {
+            font-size: 15px;
+        }
+
+        #right-panel select {
+            width: 100%;
+        }
+
+        #right-panel i {
+            font-size: 12px;
+        }
         html, body {
             height: 100%;
             margin: 0;
             padding: 0;
         }
         #map {
-            height: 680px;
-            width: 100%;
+            height: 100%;
+            float: left;
+            width: 70%;
+            height: 100%;
         }
-        #panel {
-            position: absolute;
-            top: 0px;
-            left: 25%;
-            z-index: 5;
-            background-color: #fff;
-            padding: 0px;
-            border: 1px solid #999;
-            text-align: center;
-            font-family: 'Roboto','sans-serif';
-            line-height: 0px;
-            padding-left: 10px;
+        #right-panel {
+            margin: 20px;
+            border-width: 2px;
+            width: 20%;
+            height: 400px;
+            float: left;
+            text-align: left;
+            padding-top: 0;
+        }
+        #directions-panel {
+            margin-top: 10px;
+            background-color: #FFEE77;
+            padding: 10px;
+            overflow: scroll;
+            height: 174px;
         }
     </style>
-    <script async defer src="https://maps.googleapis.com/maps/api/js?key=AIzaSyCHARpF3EFSAmJCPtdNAVYfMoLOeico1yc&callback=initMap" type="text/javascript"></script>
 </head>
 <body>
-    <div id="panel">
-        <b>Xuất phát: </b>
-        <select id="source">    // Danh sách các điểm xuất phát (điểm A)
-            <option value="Vân Đình - Ứng Hòa, vi">Thị trấn Vân Đình</option>  // Value của các option là từ khóa để Google tìm kiếm địa điểm.
-            <option value="Hà Đông, vi">Hà Đông</option>
-            <option value="Long Biên, vi">Long Biên</option>
-            <option value="Keangnam Landmark 72, vi">Keangnam Landmark 72</option>
+<div id="map"></div>
+<div id="right-panel">
+    <div>
+        <b>Start:</b>
+        <select id="start">
+            <option value="Hà Nội, vi">Hà Nội</option>
+            <option value="Hải Phòng, vi">Hải Phòng</option>
+            <option value="Quảng Ninh, vi">Quảng Ninh</option>
+            <option value="Thanh Hóa, vi">Thanh Hóa</option>
         </select>
-        <b>Đích: </b>    // Danh sách các điểm đích cần đến (điểm B)
-        <select id="destination">
-            <option value="Khâm Thiên, vi">Khâm Thiên</option>
-            <option value="Ngã Tư Sở, vi">Ngã Tư Sở</option>
-            <option value="Hàng Ngang, vi">Hàng Ngang</option>
-            <option value="Hàng Đào, vi">Hàng Đào</option>
+        <br>
+        <b>Waypoints:</b> <br>
+        <i>(Ctrl+Click or Cmd+Click for multiple selection)</i> <br>
+        <select multiple id="waypoints">
+            <option value="Nam Định, vi">Nam Định</option>
+            <option value="Hưng Yên, vi">Hưng Yên</option>
+            <option value="Bắc Ninh, vi">Bắc Ninh</option>
+            <option value="Bắc Giang, vi">Bắc Giang</option>
+            <option value="Thái Nguyên, vi">Thái Nguyên</option>
+            <option value="Hà Nam, vi">Hà Nam</option>
         </select>
-        <b>Phương tiện: </b>
-        <select id="mode"> // Google Map chỉ hỗ trợ tìm kiếm đường với 4 phương tiện như này thôi nhé.
-            <option value="DRIVING">Lái xe</option>
-            <option value="WALKING">Đi bộ</option>
-            <option value="BICYCLING">Xe đạp</option>
-            <option value="TRANSIT">Xe tải</option>
+        <br>
+        <b>End:</b>
+        <select id="end">
+            <option value="Hà Nội, vi">Hà Nội</option>
+            <option value="Hải Phòng, vi">Hải Phòng</option>
+            <option value="Quảng Ninh, vi">Quảng Ninh</option>
+            <option value="Thanh Hóa, vi">Thanh Hóa</option>
         </select>
+        <br>
+        <input type="submit" id="submit">
     </div>
-    <div id="map"></div>
-    <script>
-        var map; // Khởi tạo các biến global mã mình sẽ sử dụng.
-        var directionsDisplay;
-        var directionsService;
+    <div id="directions-panel"></div>
+</div>
+<script>
+    function initMap() {
+        var directionsService = new google.maps.DirectionsService;
+        var directionsRenderer = new google.maps.DirectionsRenderer;
+        var map = new google.maps.Map(document.getElementById('map'), {
+            zoom: 6,
+            center: {lat: 16.9769427, lng: 105.8921285}
+        });
+        directionsRenderer.setMap(map);
 
-        function initMap() {
-            var lat_lng = {lat: 20.9769427, lng: 105.8921285};  // Latitude (Kinh độ) và Longtitude (Vĩ độ) - cho biết bản đồ của bạn sẽ ở khu vực nào, khu vực mình demo là quanh Hà Nội.
-            map = new google.maps.Map(document.getElementById('map'), {    // Khởi tạo map với trong id html là map (lát nữa sẽ tạo <div id="map">)
-                zoom: 16,    // tỉ lệ phóng bản đồ
-                center: lat_lng
-            });
-            directionsService = new google.maps.DirectionsService();    // Khởi tạo DirectionsService - thằng này có nhiệm vụ tính toán chỉ đường cho chúng ta.
-            directionsDisplay = new google.maps.DirectionsRenderer({map: map});    // Khởi tạo DirectionsRenderer - thằng này có nhiệm vụ hiển thị chỉ đường trên bản đồ sau khi đã tính toán.
+        document.getElementById('submit').addEventListener('click', function() {
+            calculateAndDisplayRoute(directionsService, directionsRenderer);
+        });
+    }
 
-            var onChangeHandler = function() {
-                calculateAndDisplayRoute(directionsService, directionsDisplay);    // Hàm xử lý và hiển thị kết quả chỉ đường
-            };
-            function calculateAndDisplayRoute(directionsService, directionsDisplay) {
-                directionsService.route({    // hàm route của DirectionsService sẽ thực hiện tính toán với các tham số truyền vào
-                    origin: document.getElementById('source').value,    // điểm xuất phát
-                    destination: document.getElementById('destination').value,    // điểm đích
-                    travelMode: document.getElementById('mode').value,     // phương tiện di chuyển
-                }, function(response, status) {    // response trả về bao gồm tất cả các thông tin về chỉ đường
-                    if (status === google.maps.DirectionsStatus.OK) {
-                        directionsDisplay.setDirections(response); // hiển thị chỉ đường trên bản đồ (nét màu đỏ từ A-B
-                    } else {
-                        window.alert('Request for getting direction is failed due to ' + status);    // Hiển thị lỗi
-                    }
+    function calculateAndDisplayRoute(directionsService, directionsRenderer) {
+        var waypts = [];
+        var checkboxArray = document.getElementById('waypoints');
+        for (var i = 0; i < checkboxArray.length; i++) {
+            if (checkboxArray.options[i].selected) {
+                waypts.push({
+                    location: checkboxArray[i].value,
+                    stopover: true
                 });
             }
-            document.getElementById('source').addEventListener('change', onChangeHandler);    // Tạo sự kiện khi chọn điểm xuất phát
-            document.getElementById('destination').addEventListener('change', onChangeHandler);    // Tạo sự kiện khi chọn điểm đích
-            document.getElementById('mode').addEventListener('change', onChangeHandler);
         }
-    </script>
+
+        directionsService.route({
+            origin: document.getElementById('start').value,
+            destination: document.getElementById('end').value,
+            waypoints: waypts,
+            optimizeWaypoints: true,
+            travelMode: 'DRIVING'
+        }, function(response, status) {
+            if (status === 'OK') {
+                directionsRenderer.setDirections(response);
+                var route = response.routes[0];
+                var summaryPanel = document.getElementById('directions-panel');
+                summaryPanel.innerHTML = '';
+                // For each route, display summary information.
+                for (var i = 0; i < route.legs.length; i++) {
+                    var routeSegment = i + 1;
+                    summaryPanel.innerHTML += '<b>Route Segment: ' + routeSegment +
+                        '</b><br>';
+                    summaryPanel.innerHTML += route.legs[i].start_address + ' to ';
+                    summaryPanel.innerHTML += route.legs[i].end_address + '<br>';
+                    summaryPanel.innerHTML += route.legs[i].distance.text + '<br><br>';
+                }
+            } else {
+                window.alert('Directions request failed due to ' + status);
+            }
+        });
+    }
+</script>
+<script async defer
+        src="https://maps.googleapis.com/maps/api/js?key=AIzaSyCHARpF3EFSAmJCPtdNAVYfMoLOeico1yc&callback=initMap">
+</script>
 </body>
 </html>
